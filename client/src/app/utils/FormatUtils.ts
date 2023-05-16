@@ -1,0 +1,1 @@
+export const formatChatId = (phoneNumber) => phoneNumber + "@c.us"

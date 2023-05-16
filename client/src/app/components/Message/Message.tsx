@@ -1,5 +1,5 @@
 import {FC} from "react";
-import {MessageObjectI} from "../../context/Chats/InitialData";
+import {MessageObjectI} from "../../context/Chats";
 import styles from './style.module.scss'
 
 export const Message: FC = ({msg}: {msg: MessageObjectI}) => {

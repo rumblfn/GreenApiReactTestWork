@@ -3,8 +3,8 @@ import styles from './style.module.scss';
 import {InputField} from "../InputField";
 import useDebounce from "../../hooks/use-debounce";
 import GreenApi from "../../../api/GreenApiHandler";
-import {UserContext} from "../../context/User/Context";
-import {ChatsContext} from "../../context/Chats/Context";
+import {UserContext} from "../../context/User";
+import {ChatsContext} from "../../context/Chats";
 
 interface resCheckWhatsapp {
   existsWhatsapp: boolean,
@@ -23,7 +23,7 @@ export const SearchNewChat: FC = () => {
 
       if (addChat) {
         const chatName = phoneNumber.toString()
-        addChat(chatName, chatName + "@c.us")
+        addChat(chatName)
       }
     }
   }

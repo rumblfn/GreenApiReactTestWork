@@ -1,5 +1,5 @@
 import {FC, useContext} from "react";
-import {ChatsContext} from "../../context/Chats/Context";
+import {ChatsContext} from "../../context/Chats";
 import {ChatItem} from "../ChatItem";
 import styles from './style.module.scss';
 

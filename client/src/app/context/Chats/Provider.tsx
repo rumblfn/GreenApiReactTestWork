@@ -1,9 +1,12 @@
 import {FC, ReactNode, useContext, useEffect, useState} from "react";
-import {ChatI, ChatsI, MessageDataI, MessageResponseObjectI} from "./InitialData";
+import {ChatsI, MessageDataI} from "./InitialData";
 import {ChatsContext} from './Context';
 import GreenApi from "../../../api/GreenApiHandler";
-import {UserContext} from "../User/Context";
-import {messages} from "nx/src/utils/ab-testing";
+import {UserContext} from "../User";
+import {filterMessages, parseMessageData} from "../../utils";
+import {formatChatId} from "../../utils"
+
+const delayInMsForRequestNewMessage = 500
 
 interface ChatsProviderPropsI {
   children: ReactNode
@@ -11,23 +14,19 @@ interface ChatsProviderPropsI {
 
 export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
   const {chats: chatsContext} = useContext(ChatsContext)
-  const [chats, setChats] = useState<ChatsI>(chatsContext)
   const {user} = useContext(UserContext)
+
+  const [chats, setChats] = useState<ChatsI>(chatsContext)
 
   useEffect(() => {
     gettingMessages().catch(console.error)
   }, []);
 
   const gettingMessages = async () => {
-    const response = await GreenApi.get<MessageResponseObjectI>(
-      `/waInstance${user.idInstance}/ReceiveNotification/${user.apiTokenInstance}`
-    )
+    const response = await GreenApi.getMessageInOrder(user)
 
-    if (response && handleNewMessageReceived) {
-
-      await GreenApi.delete(
-        `/waInstance${user.idInstance}/DeleteNotification/${user.apiTokenInstance}/${response.receiptId}`
-      )
+    if (response) {
+      await GreenApi.deleteReceivedMessage(user, response.receiptId)
       const msgData = response.body
 
       if (msgData?.typeWebhook === "incomingMessageReceived") {
@@ -37,12 +36,7 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
 
     setTimeout(() => {
       gettingMessages()
-    }, 5 * 1000)
-  }
-
-  const filterMessages = (messages, msgId) => {
-    if (!messages) return []
-    return messages.filter(msg => msg.idMessage !== msgId)
+    }, delayInMsForRequestNewMessage)
   }
 
   const addMessage = (message) => {
@@ -59,24 +53,23 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
     }))
   }
 
-  const handleNewMessageReceived = (msgData: MessageDataI) => {
-    const newMessage = {
-      idMessage: msgData.idMessage,
-      timestamp: msgData.timestamp,
-      chatId: msgData.senderData.chatId,
-      chatName: msgData.senderData.chatName,
-      text: msgData.messageData?.textMessageData?.textMessage
-        || msgData.messageData?.extendedTextMessageData?.text,
-      self: false,
-    }
+  const addChat = (chatName: string) => {
+    const chatId = formatChatId(chatName)
 
+    setChats(prevChats => Object.assign({}, prevChats, {
+      [chatId]: {
+        messages: [],
+        chatName, chatId
+      }
+    }))
+  }
+
+  const handleNewMessageReceived = (msgData: MessageDataI) => {
+    const newMessage = parseMessageData(msgData)
     addMessage(newMessage)
   }
 
-  return <ChatsContext.Provider value={{
-    chats, addMessage,
-    handleNewMessageReceived
-  }}>
+  return <ChatsContext.Provider value={{chats, addMessage, addChat}}>
     {children}
   </ChatsContext.Provider>
 }
