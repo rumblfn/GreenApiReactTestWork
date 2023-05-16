@@ -1,12 +1,12 @@
 import {FC, useContext} from "react";
 import styles from './style.module.scss';
 import {useParams} from "react-router-dom";
-import {ChatsContext} from "../../context/Chats/Context";
+import {ChatsContext} from "../../context/Chats";
 import {ChatView} from "../ChatView";
 import {ChatMessages} from "../Messages";
 import {ChatBottomInputBox} from "../ChatBottomInputBox";
 import GreenApi from "../../../api/GreenApiHandler";
-import {UserContext} from "../../context/User/Context";
+import {UserContext} from "../../context/User";
 
 export const Chat: FC = () => {
   const {id} = useParams()
@@ -18,20 +18,20 @@ export const Chat: FC = () => {
   if (!chat) return null
 
   const sendMessage = message => {
-    GreenApi.post(
-      `/waInstance${user.idInstance}/SendMessage/${user.apiTokenInstance}`,
-      { chatId: chat.chatId, message }
-    )
+    const messageFormatted = {
+      idMessage: "",
+      timestamp: new Date().getTime() / 1000,
+      chatId: chat.chatId,
+      chatName: chat.chatName,
+      text: message,
+      self: true
+    }
+
+    GreenApi.sendMessage(user, messageFormatted)
       .then(res => {
         if (res.idMessage && addMessage) {
-          addMessage(chat, {
-            idMessage: res.idMessage,
-            timestamp: new Date().getTime() / 1000,
-            chatId: chat.chatId,
-            chatName: chat.chatName,
-            text: message,
-            self: true
-          })
+          messageFormatted.idMessage = res.idMessage
+          addMessage(messageFormatted)
         }
       })
       .catch(console.error)

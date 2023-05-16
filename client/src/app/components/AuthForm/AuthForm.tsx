@@ -2,7 +2,7 @@ import styles from './style.module.scss';
 import {FC, useContext, useState} from "react";
 import {FormField} from "../FormField";
 import {Button} from "../Button";
-import {UserContext} from "../../context/User/Context";
+import {UserContext} from "../../context/User";
 import {ErrorMsg} from "../ErrorMsg";
 import GreenApi from "../../../api/GreenApiHandler";
 

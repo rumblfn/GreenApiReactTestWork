@@ -1,4 +1,3 @@
-import './app.scss';
 import Router from "./pages/router";
 
 export function App() {

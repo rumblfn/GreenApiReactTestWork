@@ -20,11 +20,6 @@ export const UserProvider: FC<UserProviderPropsI> = ({children}) => {
 
   }, [user]);
 
-  useEffect(() => {
-
-    // TODO: make request
-  }, [])
-
   return <UserContext.Provider value={{user, setUser}}>
     {children}
   </UserContext.Provider>

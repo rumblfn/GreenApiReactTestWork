@@ -1,8 +1,12 @@
 import {FC, ReactNode, useContext, useEffect, useState} from "react";
-import {ChatI, ChatsI, MessageDataI, MessageResponseObjectI} from "./InitialData";
+import {ChatsI, MessageDataI} from "./InitialData";
 import {ChatsContext} from './Context';
 import GreenApi from "../../../api/GreenApiHandler";
-import {UserContext} from "../User/Context";
+import {UserContext} from "../User";
+import {filterMessages, parseMessageData} from "../../utils";
+import {formatChatId} from "../../utils"
+
+const delayInMsForRequestNewMessage = 500
 
 interface ChatsProviderPropsI {
   children: ReactNode
@@ -10,27 +14,19 @@ interface ChatsProviderPropsI {
 
 export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
   const {chats: chatsContext} = useContext(ChatsContext)
-  const [chats, setChats] = useState<ChatsI>(chatsContext)
   const {user} = useContext(UserContext)
 
-  useEffect(() => {
-    console.log(chats)
-  }, [chats]);
+  const [chats, setChats] = useState<ChatsI>(chatsContext)
 
   useEffect(() => {
     gettingMessages().catch(console.error)
   }, []);
 
-
   const gettingMessages = async () => {
-    const response = await GreenApi.get<MessageResponseObjectI>(
-      `/waInstance${user.idInstance}/ReceiveNotification/${user.apiTokenInstance}`
-    )
+    const response = await GreenApi.getMessageInOrder(user)
 
-    if (response && handleNewMessageReceived) {
-      await GreenApi.delete(
-        `/waInstance${user.idInstance}/DeleteNotification/${user.apiTokenInstance}/${response.receiptId}`
-      )
+    if (response) {
+      await GreenApi.deleteReceivedMessage(user, response.receiptId)
       const msgData = response.body
 
       if (msgData?.typeWebhook === "incomingMessageReceived") {
@@ -40,68 +36,40 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
 
     setTimeout(() => {
       gettingMessages()
-    }, 5 * 1000)
+    }, delayInMsForRequestNewMessage)
   }
 
-  const addChat = (chatName, chatId) => {
-    const newChats = {
+  const addMessage = (message) => {
+    const chatId = message.chatId
+
+    setChats(prevChats => Object.assign({}, prevChats, {
       [chatId]: {
-        messages: [], chatName, chatId
+        messages: [
+          message,
+          ...filterMessages(prevChats[chatId]?.messages, message.idMessage),
+        ],
+        chatName: message.chatName, chatId
       }
-    }
-    setChats(prevChats => Object.assign(prevChats, newChats))
+    }))
   }
 
+  const addChat = (chatName: string) => {
+    const chatId = formatChatId(chatName)
 
-  const addChatWithMessage = (chatName, chatId, message) => {
-    const newChats = {
+    setChats(prevChats => Object.assign({}, prevChats, {
       [chatId]: {
-        messages: [message],
+        messages: [],
         chatName, chatId
       }
-    }
-    setChats(prevChats => Object.assign(prevChats, newChats))
-  }
-
-  const addMessage = (chat, message) => {
-    const newChats = {
-      [chat.chatId]: {
-        chatName: chat.chatName, chatId: chat.chatId,
-        messages: [message, ...chat.messages]
-      }
-    }
-
-    setChats(prevChats => Object.assign(prevChats, newChats))
+    }))
   }
 
   const handleNewMessageReceived = (msgData: MessageDataI) => {
-    const newMessage = {
-      idMessage: msgData.idMessage,
-      timestamp: msgData.timestamp,
-      chatId: msgData.senderData.chatId,
-      chatName: msgData.senderData.chatName,
-      text: msgData.messageData?.textMessageData?.textMessage
-        || msgData.messageData?.extendedTextMessageData?.text,
-      self: false,
-    }
-
-    console.log(chats)
-    const targetChat = chats[newMessage.chatId]
-
-    if (targetChat) {
-      console.log("add message")
-      addMessage(targetChat, newMessage)
-    } else {
-      console.log("add chat with message")
-      addChatWithMessage(newMessage.chatName, newMessage.chatId, newMessage)
-    }
+    const newMessage = parseMessageData(msgData)
+    addMessage(newMessage)
   }
 
-  return <ChatsContext.Provider value={{
-    chats, addChat,
-    addChatWithMessage, addMessage,
-    handleNewMessageReceived
-  }}>
+  return <ChatsContext.Provider value={{chats, addMessage, addChat}}>
     {children}
   </ChatsContext.Provider>
 }
