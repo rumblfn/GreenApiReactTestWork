@@ -3,6 +3,7 @@ import {ChatI, ChatsI, MessageDataI, MessageResponseObjectI} from "./InitialData
 import {ChatsContext} from './Context';
 import GreenApi from "../../../api/GreenApiHandler";
 import {UserContext} from "../User/Context";
+import {messages} from "nx/src/utils/ab-testing";
 
 interface ChatsProviderPropsI {
   children: ReactNode
@@ -14,13 +15,8 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
   const {user} = useContext(UserContext)
 
   useEffect(() => {
-    console.log(chats)
-  }, [chats]);
-
-  useEffect(() => {
     gettingMessages().catch(console.error)
   }, []);
-
 
   const gettingMessages = async () => {
     const response = await GreenApi.get<MessageResponseObjectI>(
@@ -28,6 +24,7 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
     )
 
     if (response && handleNewMessageReceived) {
+
       await GreenApi.delete(
         `/waInstance${user.idInstance}/DeleteNotification/${user.apiTokenInstance}/${response.receiptId}`
       )
@@ -43,35 +40,23 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
     }, 5 * 1000)
   }
 
-  const addChat = (chatName, chatId) => {
-    const newChats = {
-      [chatId]: {
-        messages: [], chatName, chatId
-      }
-    }
-    setChats(prevChats => Object.assign(prevChats, newChats))
+  const filterMessages = (messages, msgId) => {
+    if (!messages) return []
+    return messages.filter(msg => msg.idMessage !== msgId)
   }
 
+  const addMessage = (message) => {
+    const chatId = message.chatId
 
-  const addChatWithMessage = (chatName, chatId, message) => {
-    const newChats = {
+    setChats(prevChats => Object.assign({}, prevChats, {
       [chatId]: {
-        messages: [message],
-        chatName, chatId
+        messages: [
+          message,
+          ...filterMessages(prevChats[chatId]?.messages, message.idMessage),
+        ],
+        chatName: message.chatName, chatId
       }
-    }
-    setChats(prevChats => Object.assign(prevChats, newChats))
-  }
-
-  const addMessage = (chat, message) => {
-    const newChats = {
-      [chat.chatId]: {
-        chatName: chat.chatName, chatId: chat.chatId,
-        messages: [message, ...chat.messages]
-      }
-    }
-
-    setChats(prevChats => Object.assign(prevChats, newChats))
+    }))
   }
 
   const handleNewMessageReceived = (msgData: MessageDataI) => {
@@ -85,21 +70,11 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
       self: false,
     }
 
-    console.log(chats)
-    const targetChat = chats[newMessage.chatId]
-
-    if (targetChat) {
-      console.log("add message")
-      addMessage(targetChat, newMessage)
-    } else {
-      console.log("add chat with message")
-      addChatWithMessage(newMessage.chatName, newMessage.chatId, newMessage)
-    }
+    addMessage(newMessage)
   }
 
   return <ChatsContext.Provider value={{
-    chats, addChat,
-    addChatWithMessage, addMessage,
+    chats, addMessage,
     handleNewMessageReceived
   }}>
     {children}
