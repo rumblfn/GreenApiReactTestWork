@@ -13,7 +13,7 @@ export const Chat: FC = () => {
   const {chats, addMessage} = useContext(ChatsContext)
   const {user} = useContext(UserContext)
 
-  const chat = chats.find(chat => chat.chatId === id)
+  const chat = chats[id]
 
   if (!chat) return null
 

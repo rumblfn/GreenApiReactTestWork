@@ -1,5 +1,5 @@
 import {FC, ReactNode, useContext, useEffect, useState} from "react";
-import {ChatI, MessageDataI, MessageResponseObjectI} from "./InitialData";
+import {ChatI, ChatsI, MessageDataI, MessageResponseObjectI} from "./InitialData";
 import {ChatsContext} from './Context';
 import GreenApi from "../../../api/GreenApiHandler";
 import {UserContext} from "../User/Context";
@@ -10,7 +10,7 @@ interface ChatsProviderPropsI {
 
 export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
   const {chats: chatsContext} = useContext(ChatsContext)
-  const [chats, setChats] = useState<ChatI[]>(chatsContext)
+  const [chats, setChats] = useState<ChatsI>(chatsContext)
   const {user} = useContext(UserContext)
 
   useEffect(() => {
@@ -44,24 +44,34 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
   }
 
   const addChat = (chatName, chatId) => {
-    setChats(prevState => ([{
-      messages: [], chatName, chatId,
-    }, ...prevState.filter(prevChat => prevChat.chatId !== chatId)]))
+    const newChats = {
+      [chatId]: {
+        messages: [], chatName, chatId
+      }
+    }
+    setChats(prevChats => Object.assign(prevChats, newChats))
   }
 
+
   const addChatWithMessage = (chatName, chatId, message) => {
-    const newChat = { messages: [message], chatName, chatId }
-    setChats(prevState => ([newChat, ...prevState,]))
+    const newChats = {
+      [chatId]: {
+        messages: [message],
+        chatName, chatId
+      }
+    }
+    setChats(prevChats => Object.assign(prevChats, newChats))
   }
 
   const addMessage = (chat, message) => {
-    const newChat = {
-      chatName: chat.chatName, chatId: chat.chatId,
-      messages: [message, ...chat.messages]
+    const newChats = {
+      [chat.chatId]: {
+        chatName: chat.chatName, chatId: chat.chatId,
+        messages: [message, ...chat.messages]
+      }
     }
 
-    const mapChats = ch => ch.chatId === chat.chatId ? newChat : ch
-    setChats(prevChats => prevChats.map(mapChats))
+    setChats(prevChats => Object.assign(prevChats, newChats))
   }
 
   const handleNewMessageReceived = (msgData: MessageDataI) => {
@@ -76,7 +86,7 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
     }
 
     console.log(chats)
-    const targetChat = chats.find(chat => chat.chatId === newMessage.chatId)
+    const targetChat = chats[newMessage.chatId]
 
     if (targetChat) {
       console.log("add message")
@@ -88,7 +98,7 @@ export const ChatsProvider: FC<ChatsProviderPropsI> = ({children}) => {
   }
 
   return <ChatsContext.Provider value={{
-    chats, setChats, addChat,
+    chats, addChat,
     addChatWithMessage, addMessage,
     handleNewMessageReceived
   }}>
