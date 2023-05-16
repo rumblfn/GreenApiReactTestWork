@@ -6,8 +6,10 @@ import styles from './style.module.scss';
 export const ChatsList: FC = () => {
   const {chats} = useContext(ChatsContext)
 
+  console.log(Object.values(chats))
+
   return <div className={styles.wrapper}>
-    {chats.map(({chatName, chatId}) =>
+    {Object.values(chats).map(({chatName, chatId}) =>
       <ChatItem key={chatId} id={chatId} name={chatName} />
     )}
   </div>

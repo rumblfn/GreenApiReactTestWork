@@ -44,4 +44,8 @@ export interface ChatI {
   chatId: string,
 }
 
-export const InitialChats: ChatI[] = [];
+export interface ChatsI {
+  [chatId: string]: ChatI
+}
+
+export const InitialChats: ChatsI = {};
