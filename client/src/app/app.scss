@@ -1,0 +1,28 @@
+:root {
+  --app-background-color: rgb(240, 242, 245);
+  --app-secondary-color: rgb(white);
+  --app-chat-color: rgb(249, 244, 242);
+  --border-color: rgb(237, 240, 242);
+  --app-grey-color: #b1b1b4;
+  --app-primary: #3b4a54;
+  --app-red: red;
+  --scroll-color: rgb(207, 208, 209);
+  --self-message-color: rgb(170, 238, 210);
+  --message-color: rgb(255, 255, 255);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Montserrat, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-color);
+  cursor: pointer;
+}

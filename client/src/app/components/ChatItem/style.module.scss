@@ -1,0 +1,27 @@
+.listItem {
+  display: flex;
+  align-items: center;
+  padding: 0 13px;
+  gap: 15px;
+  height: 72px;
+  cursor: pointer;
+  transition: background-color .22s;
+}
+
+.listItem:hover {
+  background-color: rgb(245, 245, 245);
+}
+
+.name {
+  font-size: 18px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  height: 100%;
+  width: 100%;
+  padding: 15px 0;
+  border-top: 1px solid var(--app-background-color);
+}

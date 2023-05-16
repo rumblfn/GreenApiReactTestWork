@@ -1,0 +1,13 @@
+.messages {
+  flex-grow: 1;
+  background-color: var(--app-chat-color);
+  padding: 0 19px 0 25px;
+}
+
+.wrapper {
+  height: 100%;
+  padding: 24px 0;
+  gap: 2px;
+  display: flex;
+  flex-direction: column-reverse;
+}

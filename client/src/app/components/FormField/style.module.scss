@@ -1,0 +1,45 @@
+.box {
+  border: none;
+  margin: 0 0 18px;
+}
+
+.input-container {
+  width: 100%;
+  min-height: 20px;
+  padding: 9px 18px 11px;
+  border: 1px solid var(--border-color);
+  background-color: white;
+  border-radius: 12px;
+}
+
+.input-text-group {
+  position: relative;
+}
+
+.placeholder {
+  color: #a0a0a0;
+  top: 0;
+  pointer-events: none;
+  user-select: none;
+  position: absolute;
+  opacity: 0;
+  left: 4px;
+  transition: 0.2s padding ease-in-out;
+}
+
+.input-text {
+  overflow-x: hidden;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: anywhere;
+  z-index: 1;
+  max-height: 100px;
+  min-height: 20px;
+  padding: 0 0 0 2px;
+  outline: 0;
+  transition: 0.2s padding ease-in-out;
+}
+
+.input-text:empty + .placeholder {
+  opacity: 1;
+}

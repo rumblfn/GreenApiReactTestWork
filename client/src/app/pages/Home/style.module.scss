@@ -1,0 +1,10 @@
+.pageBox {
+  display: flex;
+  height: 100vh;
+  overflow-y: hidden;
+}
+
+.wrapper {
+  background-color: var(--app-background-color);
+  flex-grow: 1;
+}

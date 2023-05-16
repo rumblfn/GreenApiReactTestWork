@@ -1,0 +1,13 @@
+.main {
+  display: flex;
+  padding: 10px 16px;
+  justify-content: space-between;
+  height: 60px;
+}
+
+.leftBox {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  font-size: 20px;
+}
